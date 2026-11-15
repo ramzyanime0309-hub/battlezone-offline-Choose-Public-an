@@ -39,16 +39,18 @@ public class HUDController : MonoBehaviour
             }
         }
 
-        int botsRemaining = FindObjectsOfType<EnemyBotAI>().Length;
+        int botsRemaining = GameManager.Instance != null
+            ? GameManager.Instance.BotsRemaining
+            : FindObjectsOfType<EnemyBotAI>().Length;
 
         if (botsText != null)
             botsText.text = "BOTS LEFT: " + botsRemaining;
 
-        if (messageText != null && playerHealth != null)
+        if (messageText != null)
         {
-            if (playerHealth.currentHealth <= 0)
+            if (playerHealth != null && playerHealth.currentHealth <= 0)
                 messageText.text = "GAME OVER!";
-            else if (botsRemaining == 0)
+            else if (GameManager.Instance != null && botsRemaining == 0)
                 messageText.text = "VICTORY!";
         }
     }
