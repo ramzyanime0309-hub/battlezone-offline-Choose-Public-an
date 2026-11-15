@@ -12,7 +12,7 @@ public static class DeathRaceProjectSetup{
   for(int i=0;i<4;i++){var p=new GameObject("Waypoint "+i).transform;p.position=pos[i];p.SetParent(route.transform);route.waypoints[i]=p;}
   var player=Car("Player Car",new Vector3(-25,1,-3),new Color(.8f,.04f,.03f),true);
   for(int i=0;i<3;i++){var rival=Car("Rival "+(i+1),new Vector3(-35+i*7,1,4),new Color(.05f,.25f,.85f),false);rival.AddComponent<DeathRaceWaypointAI>().points=route.waypoints;}
-  var camera=new GameObject("Chase Camera").AddComponent<DeathRaceChaseCamera>();camera.target=player.transform;
+  var camObject=new GameObject("Chase Camera",typeof(Camera),typeof(AudioListener));camObject.GetComponent<Camera>().fieldOfView=65;var camera=camObject.AddComponent<DeathRaceChaseCamera>();camera.target=player.transform;
   var hud=new GameObject("Race HUD").AddComponent<DeathRaceHUD>();hud.player=player.GetComponent<DeathRaceCarController>();
   var canvas=new GameObject("HUD Canvas",typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster));canvas.GetComponent<Canvas>().renderMode=RenderMode.ScreenSpaceOverlay;
   hud.speedText=Text(canvas.transform,"Speed",new Vector2(.82f,.9f),30);hud.lapText=Text(canvas.transform,"Lap",new Vector2(.15f,.9f),24);hud.countdownText=Text(canvas.transform,"Countdown",new Vector2(.5f,.82f),46);
