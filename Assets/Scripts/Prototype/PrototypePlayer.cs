@@ -14,7 +14,7 @@ public class PrototypePlayer : MonoBehaviour {
  void ReadTouches(){if(Input.touchCount==0){moveId=-1;lookId=-1;move=Vector2.zero;return;}for(int i=0;i<Input.touchCount;i++){Touch t=Input.GetTouch(i);if(t.phase==TouchPhase.Began){if(t.position.x<Screen.width*.45f&&moveId<0){moveId=t.fingerId;moveStart=t.position;}else if(t.position.x>=Screen.width*.45f&&lookId<0){lookId=t.fingerId;lookPrev=t.position;}}
  if(t.fingerId==moveId){move=Vector2.ClampMagnitude((t.position-moveStart)/85f,1);if(t.phase==TouchPhase.Ended||t.phase==TouchPhase.Canceled){moveId=-1;move=Vector2.zero;}}
  if(t.fingerId==lookId){if(t.phase==TouchPhase.Moved){Vector2 delta=t.position-lookPrev;transform.Rotate(0,delta.x*lookSensitivity,0);pitch=Mathf.Clamp(pitch-delta.y*lookSensitivity,-75,75);if(cameraPivot)cameraPivot.localEulerAngles=new Vector3(pitch,0,0);lookPrev=t.position;}if(t.phase==TouchPhase.Ended||t.phase==TouchPhase.Canceled)lookId=-1;}}}
- public void Fire(){if(ammo<=0||!playerCamera)return;ammo--;if(Physics.Raycast(playerCamera.transform.position,playerCamera.transform.forward,out RaycastHit hit,120)){PrototypeBot bot=hit.collider.GetComponentInParent<PrototypeBot>();if(bot)bot.TakeDamage(34);}}
+ public void Fire(){if(ammo<=0||!playerCamera)return;ammo--;if(Physics.Raycast(playerCamera.transform.position,playerCamera.transform.forward,out RaycastHit hit,120)){PrototypeBot bot=hit.collider.GetComponentInParent<PrototypeBot>();if(bot && bot.TakeDamage(34))kills++;}}
  public void Reload(){int n=Mathf.Min(30-ammo,reserveAmmo);ammo+=n;reserveAmmo-=n;}
  public void TakeDamage(float n){Health=Mathf.Max(0,Health-n);if(Health<=0){Health=maxHealth;transform.position=new Vector3(0,1,-8);}}
 }
