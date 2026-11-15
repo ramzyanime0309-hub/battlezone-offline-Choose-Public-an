@@ -39,6 +39,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Called by BotSpawner after it has created the match's bots.
+    public void RegisterSpawnedBots(int count)
+    {
+        if (matchEnded)
+            return;
+
+        botsRemaining = Mathf.Max(0, count);
+        Debug.Log("Match registered with " + botsRemaining + " bots.");
+
+        if (botsRemaining == 0)
+            EndMatch(true);
+    }
+
     public void BotEliminated()
     {
         if (matchEnded || botsRemaining <= 0)
