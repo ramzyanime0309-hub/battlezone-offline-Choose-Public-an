@@ -1,0 +1,2 @@
+using UnityEngine;
+public class PrototypeMatch:MonoBehaviour{public int botsRemaining;public bool matchWon;public void RegisterBots(int n){botsRemaining=n;matchWon=n==0;}public void BotEliminated(){botsRemaining=Mathf.Max(0,botsRemaining-1);if(botsRemaining==0)matchWon=true;}}
