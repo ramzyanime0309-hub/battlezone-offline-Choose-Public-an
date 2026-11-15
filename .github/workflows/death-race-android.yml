@@ -1,0 +1,56 @@
+name: Death Race Android Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - death-race
+    paths:
+      - "DeathRace/**"
+      - ".github/workflows/death-race-android.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    name: Build Death Race APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Death Race
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: DeathRace/Library
+          key: Library-Android-${{ hashFiles('DeathRace/Assets/**', 'DeathRace/Packages/**', 'DeathRace/ProjectSettings/**') }}
+          restore-keys: |
+            Library-Android-
+
+      - name: Build Android APK
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: DeathRace
+          unityVersion: 6000.0.64f1
+          targetPlatform: Android
+          buildsPath: build
+          buildName: DeathRace
+          allowDirtyBuild: true
+
+      - name: Upload APK build
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeathRace-Android
+          path: build/Android
+          if-no-files-found: error
+          retention-days: 14
