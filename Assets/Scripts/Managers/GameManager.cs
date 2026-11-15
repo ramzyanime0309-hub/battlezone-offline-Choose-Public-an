@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -11,10 +10,21 @@ public class GameManager : MonoBehaviour
     private int botsRemaining;
     private bool matchEnded;
 
+    public int BotsRemaining
+    {
+        get { return botsRemaining; }
+    }
+
     void Awake()
     {
         Instance = this;
-        botsRemaining = startingBots;
+        botsRemaining = Mathf.Max(0, startingBots);
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     void Update()
@@ -31,29 +41,28 @@ public class GameManager : MonoBehaviour
 
     public void BotEliminated()
     {
-        if (matchEnded)
+        if (matchEnded || botsRemaining <= 0)
             return;
 
         botsRemaining--;
 
-        if (botsRemaining <= 0)
-        {
+        Debug.Log("Bot eliminated. Bots remaining: " + botsRemaining);
+
+        if (botsRemaining == 0)
             EndMatch(true);
-        }
     }
 
     void EndMatch(bool playerWon)
     {
+        if (matchEnded)
+            return;
+
         matchEnded = true;
 
         if (playerWon)
-        {
             Debug.Log("VICTORY! You won the match!");
-        }
         else
-        {
             Debug.Log("GAME OVER! You were eliminated.");
-        }
 
         Time.timeScale = 0f;
     }
