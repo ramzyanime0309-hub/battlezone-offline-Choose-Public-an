@@ -1,6 +1,0 @@
-using UnityEngine;
-public class PrototypeHUD:MonoBehaviour{
- PrototypePlayer p;PrototypeMatch m;GUIStyle s,b;
- void Start(){p=FindFirstObjectByType<PrototypePlayer>();m=FindFirstObjectByType<PrototypeMatch>();s=new GUIStyle(GUI.skin.label){fontSize=Mathf.Max(18,Screen.height/34),normal={textColor=Color.white}};b=new GUIStyle(GUI.skin.button){fontSize=Mathf.Max(16,Screen.height/38),fontStyle=FontStyle.Bold};}
- void OnGUI(){if(!p)return;float k=Mathf.Clamp(Screen.height/720f,.8f,1.8f);GUI.Label(new Rect(16,12,480*k,34*k),"BATTLEZONE  |  OFFLINE",s);GUI.Label(new Rect(16,48*k,480*k,32*k),"HP "+Mathf.CeilToInt(p.Health)+"   AMMO "+p.ammo+"/"+p.reserveAmmo,s);GUI.Label(new Rect(16,82*k,480*k,32*k),"KILLS "+p.kills+"   BOTS "+(m?m.botsRemaining:0),s);float w=120*k,h=58*k;if(GUI.RepeatButton(new Rect(Screen.width-w-20,Screen.height-h-24,w,h),"FIRE",b))p.Fire();if(GUI.Button(new Rect(Screen.width-w-20,Screen.height-h*2-34,w,h*.75f),"RELOAD",b))p.Reload();if(m&&m.matchWon)GUI.Label(new Rect(Screen.width*.35f,Screen.height*.42f,Screen.width*.6f,80),"VICTORY! ALL BOTS ELIMINATED",s);GUI.Label(new Rect(16,Screen.height-34,520,30),"LEFT SIDE: MOVE   |   RIGHT SIDE: LOOK",s);}
-}
