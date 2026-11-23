@@ -21,7 +21,7 @@ Keyboard: W/Up accelerate, S/Down brake or reverse, A/D or arrows steer, Shift n
 
 ## Automated validation
 
-The `Death Race Godot validation` GitHub Actions workflow downloads the official Godot 4.3 Linux editor/runtime, imports the project headlessly, and runs a smoke test that checks scene construction, player/rival creation, camera setup and countdown start. A passing workflow is engine validation, not a substitute for visual testing on an Android phone.
+The `Death Race Godot validation` GitHub Actions workflow downloads the official Godot 4.3 Linux editor/runtime, imports the project headlessly, and runs a smoke test for scene construction, camera activation, countdown/start-line progression, player acceleration, nitro drain, right-steering direction and AI movement. A passing workflow is engine/logic validation, not a substitute for visual and collision testing on an Android phone.
 
 ## Known limits
 
