@@ -179,9 +179,9 @@ func _make_car(label: String, pos: Vector3, color: Color, ai: bool) -> DeathRace
 
 func _build_camera() -> void:
 	follow_camera = Camera3D.new()
-	follow_camera.current = true
 	follow_camera.fov = 72.0
 	add_child(follow_camera)
+	follow_camera.make_current()
 	var initial_offset := player.global_transform.basis * Vector3(0, 9, 16)
 	var initial_look := player.global_transform.basis * Vector3(0, 0.8, -5)
 	follow_camera.global_position = player.global_position + initial_offset

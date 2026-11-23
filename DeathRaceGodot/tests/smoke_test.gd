@@ -31,7 +31,7 @@ func _run_smoke_test() -> void:
 		quit(1)
 		return
 
-	var camera := race_root.get_node_or_null("Camera3D") as Camera3D
+	var camera := race_root.get("follow_camera") as Camera3D
 	if camera == null or not camera.current:
 		push_error("SMOKE TEST FAILED: active chase camera is missing")
 		quit(1)
