@@ -1,5 +1,7 @@
 extends SceneTree
 
+const CAR_CATALOG = preload("res://scripts/car_catalog.gd")
+
 func _initialize() -> void:
 	call_deferred("_run_smoke_test")
 
@@ -8,6 +10,55 @@ func _fail(message: String) -> void:
 	quit(1)
 
 func _run_smoke_test() -> void:
+	if String(ProjectSettings.get_setting("application/run/main_scene")) != "res://scenes/garage.tscn":
+		_fail("project main scene is not the garage")
+		return
+	var catalog := CAR_CATALOG.all_cars()
+	if catalog.size() != 6:
+		_fail("expected 6 catalogue entries, found %d" % catalog.size())
+		return
+	var catalogue_names: Array[String] = []
+	for definition in catalog:
+		catalogue_names.append(String(definition.get("display_name", "")))
+	if not catalogue_names.has("Lamborghini Veneno") or not catalogue_names.has("Apollo Evo"):
+		_fail("Lamborghini and Apollo catalogue entries are missing")
+		return
+
+	var state_node := root.get_node_or_null("DeathRaceState")
+	if state_node == null:
+		var state_script := load("res://scripts/game_state.gd") as Script
+		state_node = state_script.new() as Node
+		state_node.name = "DeathRaceState"
+		root.add_child(state_node)
+	state_node.set("selected_car_id", "apollo_evo")
+
+	var garage_scene := load("res://scenes/garage.tscn") as PackedScene
+	if garage_scene == null:
+		_fail("could not load the garage scene")
+		return
+	var garage_root := garage_scene.instantiate() as Control
+	if garage_root == null:
+		_fail("garage root is not a Control")
+		return
+	root.add_child(garage_root)
+	await process_frame
+	var garage_cars: Array = garage_root.get("cars")
+	if garage_cars.size() != 6:
+		_fail("garage did not build all 6 cars")
+		return
+	var garage_preview := garage_root.get("preview_car") as Node3D
+	var start_button := garage_root.get("start_race_button") as Button
+	if garage_preview == null or start_button == null:
+		_fail("garage preview or Start Race button is missing")
+		return
+	garage_root.call("_select_car", 5)
+	var selected_name := garage_root.get("name_label") as Label
+	if selected_name == null or selected_name.text != "Apollo Evo":
+		_fail("garage selection did not update to Apollo Evo")
+		return
+	garage_root.queue_free()
+	await process_frame
+
 	var packed_scene := load("res://scenes/race.tscn") as PackedScene
 	if packed_scene == null:
 		_fail("could not load res://scenes/race.tscn")
@@ -24,6 +75,9 @@ func _run_smoke_test() -> void:
 	var player := race_root.get_node_or_null("Player") as DeathRaceCar
 	if player == null:
 		_fail("Player node or DeathRaceCar script is missing")
+		return
+	if absf(player.max_speed - (365.0 / 3.6)) > 0.1:
+		_fail("selected Apollo Evo performance was not applied to the player")
 		return
 
 	var rivals := get_nodes_in_group("rivals")
@@ -71,6 +125,7 @@ func _run_smoke_test() -> void:
 	var forward_after := -player.global_transform.basis.z
 	if forward_after.z <= forward_before.z + 0.01:
 		_fail("right steering did not turn the car toward its right")
+		return
 
 	var ai_moved := false
 	for index in range(rivals.size()):

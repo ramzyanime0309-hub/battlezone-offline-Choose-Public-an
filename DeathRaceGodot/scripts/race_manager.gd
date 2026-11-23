@@ -1,5 +1,6 @@
 extends Node3D
 
+const CAR_CATALOG = preload("res://scripts/car_catalog.gd")
 const TRACK_ROUTE: Array[Vector3] = [
 	# Start/finish is on the south straight; the race proceeds east, north, west, then south.
 	Vector3(0, 0, 27), Vector3(39, 0, 27), Vector3(39, 0, -27),
@@ -12,6 +13,7 @@ var speed_label: Label
 var lap_label: Label
 var status_label: Label
 var nitro_bar: ProgressBar
+var selected_car_name: String = "Lamborghini Veneno"
 var countdown: float = 3.0
 var race_started: bool = false
 var finished: bool = false
@@ -113,7 +115,22 @@ func _add_static_box(label: String, pos: Vector3, size: Vector3, color: Color) -
 	add_child(body)
 
 func _build_cars() -> void:
-	player = _make_car("Player", Vector3(-5.0, 0.65, 31.0), Color(0.08, 0.48, 0.95), false)
+	var selected_car_id := "lamborghini_veneno"
+	var game_state := get_node_or_null("/root/DeathRaceState")
+	if game_state != null:
+		selected_car_id = String(game_state.get("selected_car_id"))
+	var selected_car: Dictionary = CAR_CATALOG.get_car_by_id(selected_car_id)
+	if selected_car.is_empty():
+		selected_car = CAR_CATALOG.get_car_by_id("lamborghini_veneno")
+
+	selected_car_name = String(selected_car.get("display_name", "Lamborghini Veneno"))
+	var player_color := Color.html(String(selected_car.get("body_color", "#0d7ae5")))
+	player = _make_car("Player", Vector3(-5.0, 0.65, 31.0), player_color, false)
+	player.max_speed = float(selected_car.get("top_speed_kmh", 355.0)) / 3.6
+	player.acceleration = 25.0 + float(selected_car.get("acceleration_rating", 85.0)) * 0.12
+	player.grip = 3.0 + float(selected_car.get("handling_rating", 80.0)) * 0.05
+	player.nitro_force = 40.0 + float(selected_car.get("nitro_rating", 80.0)) * 0.25
+	player.high_speed_steering = 0.45 + float(selected_car.get("handling_rating", 80.0)) * 0.003
 	player.race_enabled = false
 	_make_rival("Rival Red", Vector3(-9.0, 0.65, 35.0), Color(0.88, 0.12, 0.08), 0.78)
 	_make_rival("Rival Gold", Vector3(-1.0, 0.65, 35.0), Color(0.95, 0.62, 0.08), 0.74)
@@ -205,6 +222,7 @@ func _build_hud() -> void:
 	layer.add_child(root)
 
 	speed_label = _make_label(root, "000 KM/H", Rect2(28, 22, 260, 62), 34)
+	_make_label(root, selected_car_name, Rect2(28, 82, 360, 34), 18)
 	lap_label = _make_label(root, "LAP 1 / 3", Rect2(540, 22, 220, 54), 26)
 	status_label = _make_label(root, "GET READY  3", Rect2(430, 86, 420, 60), 30)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

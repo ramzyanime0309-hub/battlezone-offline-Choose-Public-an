@@ -10,6 +10,8 @@ No third-party art, vehicle models, textures, fonts, music or sound effects are 
 |---|---|---|---|
 | Track and barriers | Primitive meshes and collision shapes generated in `scripts/race_manager.gd` | Original project code | Original |
 | Player and rival vehicles | Primitive box/cylinder meshes generated in `scripts/race_manager.gd` | Original project code | Original |
+| Garage preview vehicles | Primitive box/cylinder meshes generated in `scripts/garage.gd` | Original project code | Original |
+| Catalogue data | Six manufacturer/model labels and game-balance values in `scripts/car_catalog.gd` | Project-authored catalogue data; no manufacturer assets/logos included | Original data entry |
 | Materials | `StandardMaterial3D` instances generated in code | Original project code | Original |
 | Audio | None yet | — | — |
 
