@@ -1,12 +1,12 @@
 extends Node3D
 
-const CAR_SCRIPT = preload("res://scripts/car_controller.gd")
 const TRACK_ROUTE: Array[Vector3] = [
-	Vector3(0, 0, -27), Vector3(39, 0, -27), Vector3(39, 0, 27),
-	Vector3(-39, 0, 27), Vector3(-39, 0, -27), Vector3(0, 0, -27)
+	# Start/finish is on the south straight; the race proceeds east, north, west, then south.
+	Vector3(0, 0, 27), Vector3(39, 0, 27), Vector3(39, 0, -27),
+	Vector3(-39, 0, -27), Vector3(-39, 0, 27), Vector3(0, 0, 27)
 ]
 
-var player: RigidBody3D
+var player: DeathRaceCar
 var follow_camera: Camera3D
 var speed_label: Label
 var lap_label: Label
@@ -36,8 +36,10 @@ func _process(delta: float) -> void:
 		if countdown <= 0.0:
 			race_started = true
 			player.race_enabled = true
-			for rival in get_tree().get_nodes_in_group("rivals"):
-				rival.race_enabled = true
+			for rival_node in get_tree().get_nodes_in_group("rivals"):
+				var rival := rival_node as DeathRaceCar
+				if rival != null:
+					rival.race_enabled = true
 			status_label.text = "RACE ON"
 	if race_started and not finished:
 		elapsed += delta
@@ -111,29 +113,30 @@ func _add_static_box(label: String, pos: Vector3, size: Vector3, color: Color) -
 	add_child(body)
 
 func _build_cars() -> void:
-	player = _make_car("Player", Vector3(0, 0.65, 31), Color(0.08, 0.48, 0.95), false)
+	player = _make_car("Player", Vector3(-5.0, 0.65, 31.0), Color(0.08, 0.48, 0.95), false)
 	player.race_enabled = false
-	var rival_specs := [
-		["Rival Red", Vector3(-4.0, 0.65, 34.5), Color(0.88, 0.12, 0.08), 0.78],
-		["Rival Gold", Vector3(4.0, 0.65, 38.0), Color(0.95, 0.62, 0.08), 0.74],
-		["Rival White", Vector3(-8.0, 0.65, 38.0), Color(0.82, 0.86, 0.9), 0.76]
-	]
-	for spec in rival_specs:
-		var rival := _make_car(spec[0], spec[1], spec[2], true)
-		rival.ai_speed = spec[3]
-		rival.race_enabled = false
-		rival.add_to_group("rivals")
+	_make_rival("Rival Red", Vector3(-9.0, 0.65, 35.0), Color(0.88, 0.12, 0.08), 0.78)
+	_make_rival("Rival Gold", Vector3(-1.0, 0.65, 35.0), Color(0.95, 0.62, 0.08), 0.74)
+	_make_rival("Rival White", Vector3(7.0, 0.65, 35.0), Color(0.82, 0.86, 0.9), 0.76)
 
-func _make_car(label: String, pos: Vector3, color: Color, ai: bool) -> RigidBody3D:
-	var car := RigidBody3D.new()
+func _make_rival(label: String, pos: Vector3, color: Color, speed: float) -> void:
+	var rival := _make_car(label, pos, color, true)
+	rival.ai_speed = speed
+	rival.waypoint_index = 1
+	rival.race_enabled = false
+	rival.add_to_group("rivals")
+
+func _make_car(label: String, pos: Vector3, color: Color, ai: bool) -> DeathRaceCar:
+	var car := DeathRaceCar.new()
 	car.name = label
 	car.position = pos
+	# The start/finish straight runs east, so all cars line up facing +X.
+	car.rotation.y = -PI / 2.0
 	car.mass = 1150.0
 	car.gravity_scale = 0.0
 	car.linear_damp = 0.16
 	car.angular_damp = 4.0
 	car.continuous_cd = true
-	car.set_script(CAR_SCRIPT)
 	car.is_ai = ai
 	car.waypoints = TRACK_ROUTE.duplicate()
 
@@ -179,13 +182,20 @@ func _build_camera() -> void:
 	follow_camera.current = true
 	follow_camera.fov = 72.0
 	add_child(follow_camera)
-	follow_camera.global_position = player.global_position + Vector3(0, 13, 19)
-	follow_camera.look_at(player.global_position + Vector3(0, 0, -7), Vector3.UP)
+	var initial_offset := player.global_transform.basis * Vector3(0, 9, 16)
+	var initial_look := player.global_transform.basis * Vector3(0, 0.8, -5)
+	follow_camera.global_position = player.global_position + initial_offset
+	follow_camera.look_at(player.global_position + initial_look, Vector3.UP)
 
 func _update_camera(delta: float) -> void:
-	var desired := player.global_position + player.global_transform.basis * Vector3(0, 10, 18)
-	follow_camera.global_position = follow_camera.global_position.lerp(desired, clampf(delta * 4.0, 0.0, 1.0))
-	follow_camera.look_at(player.global_position + Vector3(0, 0.8, -5), Vector3.UP)
+	var speed_ratio := clampf(player.linear_velocity.length() / player.max_speed, 0.0, 1.0)
+	var camera_offset := Vector3(0, 9.0 + speed_ratio * 1.5, 16.0 + speed_ratio * 4.0)
+	var desired := player.global_position + player.global_transform.basis * camera_offset
+	var smoothing := 1.0 - exp(-delta * 5.0)
+	follow_camera.global_position = follow_camera.global_position.lerp(desired, smoothing)
+	var look_ahead := Vector3(0, 0.8, -(5.0 + speed_ratio * 4.0))
+	follow_camera.look_at(player.global_position + player.global_transform.basis * look_ahead, Vector3.UP)
+	follow_camera.fov = lerpf(72.0, 82.0, speed_ratio)
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()

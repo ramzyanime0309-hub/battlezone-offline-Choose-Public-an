@@ -1,32 +1,36 @@
-# Death Race — Godot edition
+# Death Race — Godot 4 edition
 
-This is the new Godot 4 / GDScript development track for Death Race. The original Unity project in `DeathRace/` is intentionally preserved as a backup; this project lives separately in `DeathRaceGodot/`.
+This is the primary Godot 4 / GDScript development track for the offline, single-player Death Race game. The original Unity project in `DeathRace/` remains untouched as a backup. The separate `DeathRace2D/` experiment is also left untouched; this 3D project lives in `DeathRaceGodot/`.
 
-## First playable slice
+## Current 3D prototype
 
-- 3D arcade racing loop on a closed rectangular circuit
-- Player acceleration, steering, reverse/braking, drifting and nitro
-- Three AI rival cars following track waypoints
-- Three-lap checkpoint progression and finish state
+- Procedurally generated rectangular 3D circuit and barrier collisions
+- Player car with acceleration, steering, braking/reverse, drift and rechargeable nitro
+- Three AI rivals following ordered track waypoints
+- Three-lap checkpoint progression, countdown and finish state
 - Speed, lap, countdown and nitro HUD
-- Touchscreen buttons plus keyboard controls for desktop testing
-- Offline only; no account, network, purchase or online-multiplayer dependency
+- Touchscreen controls plus keyboard controls for desktop testing
+- Landscape orientation and GL Compatibility renderer
+- Offline only: no accounts, network, purchases or online multiplayer
 
-## Run
+## Open locally
 
-Install Godot 4.3 or a compatible Godot 4.x release, open this folder as a project, then press Play (F6/F5). The main scene is `scenes/race.tscn`.
+Install Godot 4.3 or a compatible Godot 4.x release, import this folder using `project.godot`, and run the main scene `scenes/race.tscn`.
 
 Keyboard: W/Up accelerate, S/Down brake or reverse, A/D or arrows steer, Shift nitro, Space drift.
 
-Android target: landscape orientation, GL Compatibility renderer. Android export templates and SDK setup are still required before an APK can be produced.
+## Automated validation
 
-## Status and known limits
+The `Death Race Godot validation` GitHub Actions workflow downloads the official Godot 4.3 Linux editor/runtime, imports the project headlessly, and runs a smoke test that checks scene construction, player/rival creation, camera setup and countdown start. A passing workflow is engine validation, not a substitute for visual testing on an Android phone.
 
-This is an initial greybox playable slice using original primitive geometry. It is not the final visual quality target. The current repository environment did not have a Godot executable available, so engine parsing, live gameplay, Android export and physical-device performance have not yet been verified.
+## Known limits
 
-## Next development priorities
+The scene remains a greybox prototype made from primitive geometry. It has not yet been visually tested on an Android device or exported as an APK. Android export templates and Android SDK/JDK configuration are still required for a release build. The current phone editor workflow may also be constrained by device memory and performance.
 
-1. Run the scene in Godot and tune car handling/collision stability.
-2. Add proper track surface markings, camera shake, engine/nitro audio and responsive touch layout.
-3. Replace primitive vehicles with licensed or original optimized 3D car assets; maintain an asset register.
-4. Port the existing requested car catalogue and garage progression into Godot resources.
+## Development priorities
+
+1. Keep the Godot headless smoke test passing and resolve any engine-reported errors.
+2. Continue tuning handling, collision response, touch layout and chase camera using actual device feedback.
+3. Build the garage and car catalogue, including fictionalised/licensed Lamborghini- and Apollo-inspired entries.
+4. Add only original or properly licensed vehicle/track assets and record each asset's source, creator, licence and modifications in `ASSET_CREDITS.md`.
+5. Optimise the finished 3D game for Android before making an APK.

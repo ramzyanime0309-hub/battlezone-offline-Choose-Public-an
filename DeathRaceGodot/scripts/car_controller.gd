@@ -5,6 +5,7 @@ class_name DeathRaceCar
 @export var reverse_force: float = 15.0
 @export var max_speed: float = 54.0
 @export var steering_force: float = 8.5
+@export_range(0.25, 1.0, 0.05) var high_speed_steering: float = 0.62
 @export var grip: float = 7.0
 @export var nitro_force: float = 62.0
 @export var is_ai: bool = false
@@ -41,10 +42,10 @@ func _physics_process(delta: float) -> void:
 		throttle = ai_input.x
 		steer = ai_input.y
 	else:
-		throttle = float(controls["accelerate"] or Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP))
+		throttle = 1.0 if controls["accelerate"] or Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP) else 0.0
 		if controls["brake"] or Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
 			throttle = -1.0
-		steer = float(controls["right"] or Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(controls["left"] or Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT))
+		steer = (1.0 if controls["right"] or Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT) else 0.0) - (1.0 if controls["left"] or Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT) else 0.0)
 		boosting = controls["nitro"] or Input.is_key_pressed(KEY_SHIFT)
 		drifting = controls["drift"] or Input.is_key_pressed(KEY_SPACE)
 
@@ -62,7 +63,10 @@ func _physics_process(delta: float) -> void:
 			apply_central_force(forward * reverse_force * throttle * mass)
 
 	if absf(steer) > 0.01 and speed_factor > 0.03:
-		apply_torque(Vector3.UP * steer * steering_force * speed_factor * mass * 0.12 * signf(forward_speed if absf(forward_speed) > 0.5 else 1.0))
+		var speed_ratio := clampf(absf(forward_speed) / max_speed, 0.0, 1.0)
+		var steering_limit := lerpf(1.0, high_speed_steering, speed_ratio)
+		# Positive input means right; negative Y torque turns a forward-moving car right.
+		apply_torque(Vector3.UP * -steer * steering_force * speed_factor * steering_limit * mass * 0.12 * signf(forward_speed if absf(forward_speed) > 0.5 else 1.0))
 
 	var lateral_speed := linear_velocity.dot(right)
 	var active_grip := grip * (0.28 if drifting else 1.0)
