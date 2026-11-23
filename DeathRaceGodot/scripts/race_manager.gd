@@ -199,20 +199,31 @@ func _build_camera() -> void:
 	follow_camera.fov = 72.0
 	add_child(follow_camera)
 	follow_camera.make_current()
-	var initial_offset := player.global_transform.basis * Vector3(0, 9, 16)
-	var initial_look := player.global_transform.basis * Vector3(0, 0.8, -5)
-	follow_camera.global_position = player.global_position + initial_offset
-	follow_camera.look_at(player.global_position + initial_look, Vector3.UP)
+	var forward := -player.global_transform.basis.z
+	follow_camera.global_position = player.global_position - forward * 16.0 + Vector3.UP * 9.0
+	follow_camera.look_at(player.global_position + forward * 5.0 + Vector3.UP * 0.8, Vector3.UP)
 
 func _update_camera(delta: float) -> void:
 	var speed_ratio := clampf(player.linear_velocity.length() / player.max_speed, 0.0, 1.0)
-	var camera_offset := Vector3(0, 9.0 + speed_ratio * 1.5, 16.0 + speed_ratio * 4.0)
-	var desired := player.global_position + player.global_transform.basis * camera_offset
-	var smoothing := 1.0 - exp(-delta * 5.0)
+	var forward := -player.global_transform.basis.z
+	forward.y = 0.0
+	forward = forward.normalized()
+	var travel_direction := forward
+	var horizontal_velocity := player.linear_velocity
+	horizontal_velocity.y = 0.0
+	# During a forward slide, let the chase camera follow part of the actual travel
+	# direction so the car remains readable instead of snapping around its body yaw.
+	if horizontal_velocity.length() > 4.0 and horizontal_velocity.dot(forward) > 0.0:
+		travel_direction = forward.lerp(horizontal_velocity.normalized(), 0.38).normalized()
+
+	var camera_height := 8.5 + speed_ratio * 1.5
+	var camera_distance := 15.5 + speed_ratio * 4.5
+	var desired := player.global_position - travel_direction * camera_distance + Vector3.UP * camera_height
+	var smoothing := 1.0 - exp(-delta * (6.0 + speed_ratio * 1.5))
 	follow_camera.global_position = follow_camera.global_position.lerp(desired, smoothing)
-	var look_ahead := Vector3(0, 0.8, -(5.0 + speed_ratio * 4.0))
-	follow_camera.look_at(player.global_position + player.global_transform.basis * look_ahead, Vector3.UP)
-	follow_camera.fov = lerpf(72.0, 82.0, speed_ratio)
+	var look_ahead := player.global_position + travel_direction * (5.0 + speed_ratio * 6.0) + Vector3.UP * 0.85
+	follow_camera.look_at(look_ahead, Vector3.UP)
+	follow_camera.fov = lerpf(72.0, 84.0, speed_ratio)
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()

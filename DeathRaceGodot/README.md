@@ -5,7 +5,8 @@ This is the primary Godot 4 / GDScript development track for the offline, single
 ## Current 3D prototype
 
 - Procedurally generated rectangular 3D circuit and barrier collisions
-- Player car with acceleration, steering, braking/reverse, drift and rechargeable nitro
+- Player car with acceleration, speed-sensitive steering, braking/reverse, lower-grip drift and rechargeable nitro
+- Velocity-aware smoothed chase camera with speed-based follow distance and field of view
 - Three AI rivals following ordered track waypoints
 - Three-lap checkpoint progression, countdown and finish state
 - Speed, lap, countdown and nitro HUD
@@ -23,7 +24,7 @@ Keyboard: W/Up accelerate, S/Down brake or reverse, A/D or arrows steer, Shift n
 
 ## Automated validation
 
-The `Death Race Godot validation` GitHub Actions workflow downloads the official Godot 4.3 Linux editor/runtime, imports the project headlessly, and smoke-tests the six-car catalogue, garage selection, selected-car stats, camera activation, countdown/start-line progression, acceleration, nitro drain, right-steering direction and AI movement. A passing workflow is engine/logic validation, not a substitute for visual and collision testing on an Android phone.
+The `Death Race Godot validation` GitHub Actions workflow downloads the official Godot 4.3 Linux editor/runtime, imports the project headlessly, and smoke-tests the six-car catalogue, garage selection, selected-car stats, camera activation and follow response, countdown/start-line progression, acceleration, nitro drain, right-steering direction, drift damping and AI movement. A passing workflow is engine/logic validation, not a substitute for visual and collision testing on an Android phone.
 
 ## Known limits
 

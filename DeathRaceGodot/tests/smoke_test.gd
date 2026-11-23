@@ -89,6 +89,7 @@ func _run_smoke_test() -> void:
 	if camera == null or not camera.current:
 		_fail("active chase camera is missing")
 		return
+	var camera_start_position := camera.global_position
 
 	await create_timer(3.25).timeout
 	if not bool(race_root.get("race_started")) or not player.race_enabled:
@@ -117,6 +118,13 @@ func _run_smoke_test() -> void:
 	if player.nitro >= 99.5:
 		_fail("nitro did not drain while boosting")
 		return
+	if camera.global_position.distance_to(camera_start_position) < 0.5:
+		_fail("chase camera did not follow the accelerating player")
+		return
+	var camera_distance := camera.global_position.distance_to(player.global_position)
+	if camera_distance < 10.0 or camera_distance > 30.0:
+		_fail("chase camera distance moved outside its expected follow range")
+		return
 
 	var forward_before := -player.global_transform.basis.z
 	player.set_control("right", true)
@@ -125,6 +133,17 @@ func _run_smoke_test() -> void:
 	var forward_after := -player.global_transform.basis.z
 	if forward_after.z <= forward_before.z + 0.01:
 		_fail("right steering did not turn the car toward its right")
+		return
+
+	player.set_control("drift", true)
+	await physics_frame
+	if player.angular_damp >= player.normal_angular_damp:
+		_fail("drift mode did not reduce chassis angular damping")
+		return
+	player.set_control("drift", false)
+	await physics_frame
+	if absf(player.angular_damp - player.normal_angular_damp) > 0.01:
+		_fail("normal chassis damping was not restored after drifting")
 		return
 
 	var ai_moved := false

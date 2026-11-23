@@ -6,6 +6,11 @@ class_name DeathRaceCar
 @export var max_speed: float = 54.0
 @export var steering_force: float = 8.5
 @export_range(0.25, 1.0, 0.05) var high_speed_steering: float = 0.62
+@export_range(0.1, 0.5, 0.01) var steering_torque_scale: float = 0.28
+@export_range(0.1, 0.6, 0.01) var drift_grip_multiplier: float = 0.26
+@export_range(1.0, 1.5, 0.05) var drift_steering_multiplier: float = 1.18
+@export var normal_angular_damp: float = 3.2
+@export var drift_angular_damp: float = 2.4
 @export var grip: float = 7.0
 @export var nitro_force: float = 62.0
 @export var is_ai: bool = false
@@ -21,7 +26,7 @@ func _ready() -> void:
 	mass = 1150.0
 	gravity_scale = 0.0
 	linear_damp = 0.16
-	angular_damp = 4.0
+	angular_damp = normal_angular_damp
 	can_sleep = false
 	continuous_cd = true
 
@@ -49,6 +54,10 @@ func _physics_process(delta: float) -> void:
 		boosting = controls["nitro"] or Input.is_key_pressed(KEY_SHIFT)
 		drifting = controls["drift"] or Input.is_key_pressed(KEY_SPACE)
 
+	# Drifting loosens the chassis and tyre response for a controllable arcade slide.
+	angular_damp = drift_angular_damp if drifting else normal_angular_damp
+	linear_damp = 0.10 if drifting else 0.16
+
 	var forward := -global_transform.basis.z
 	var right := global_transform.basis.x
 	var forward_speed := linear_velocity.dot(forward)
@@ -66,10 +75,11 @@ func _physics_process(delta: float) -> void:
 		var speed_ratio := clampf(absf(forward_speed) / max_speed, 0.0, 1.0)
 		var steering_limit := lerpf(1.0, high_speed_steering, speed_ratio)
 		# Positive input means right; negative Y torque turns a forward-moving car right.
-		apply_torque(Vector3.UP * -steer * steering_force * speed_factor * steering_limit * mass * 0.12 * signf(forward_speed if absf(forward_speed) > 0.5 else 1.0))
+		var drift_steering := drift_steering_multiplier if drifting else 1.0
+		apply_torque(Vector3.UP * -steer * steering_force * speed_factor * steering_limit * drift_steering * mass * steering_torque_scale * signf(forward_speed if absf(forward_speed) > 0.5 else 1.0))
 
 	var lateral_speed := linear_velocity.dot(right)
-	var active_grip := grip * (0.28 if drifting else 1.0)
+	var active_grip := grip * (drift_grip_multiplier if drifting else 1.0)
 	apply_central_force(-right * lateral_speed * active_grip * mass)
 
 	if boosting and throttle > 0.0 and nitro > 0.0:
