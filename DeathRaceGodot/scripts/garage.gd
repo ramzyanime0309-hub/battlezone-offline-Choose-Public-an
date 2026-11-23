@@ -91,11 +91,13 @@ func _build_ui() -> void:
 	var preview_container := SubViewportContainer.new()
 	preview_container.stretch = true
 	preview_container.custom_minimum_size = Vector2(580, 490)
+	var headless_validation := DisplayServer.get_name() == "headless"
+	preview_container.visible = not headless_validation
 	preview_panel.add_child(preview_container)
 
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(580, 490)
-	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED if headless_validation else SubViewport.UPDATE_ALWAYS
 	preview_container.add_child(viewport)
 
 	preview_world = Node3D.new()
@@ -118,8 +120,8 @@ func _build_ui() -> void:
 
 	var camera := Camera3D.new()
 	camera.position = Vector3(4.2, 3.0, 7.8)
-	camera.look_at(Vector3(0, 0.45, 0), Vector3.UP)
 	preview_world.add_child(camera)
+	camera.look_at(Vector3(0, 0.45, 0), Vector3.UP)
 	camera.make_current()
 
 	var floor := MeshInstance3D.new()

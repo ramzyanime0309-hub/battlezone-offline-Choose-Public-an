@@ -136,12 +136,12 @@ func _run_smoke_test() -> void:
 		return
 
 	player.set_control("drift", true)
-	await physics_frame
+	await create_timer(0.1).timeout
 	if player.angular_damp >= player.normal_angular_damp:
 		_fail("drift mode did not reduce chassis angular damping")
 		return
 	player.set_control("drift", false)
-	await physics_frame
+	await create_timer(0.1).timeout
 	if absf(player.angular_damp - player.normal_angular_damp) > 0.01:
 		_fail("normal chassis damping was not restored after drifting")
 		return
